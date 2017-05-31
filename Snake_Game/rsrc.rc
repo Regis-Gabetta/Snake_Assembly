@@ -1,0 +1,7 @@
+#define IDB_MAIN  1
+#define IDB_MAIN1 2
+#define IDB_FIG   3
+
+IDB_MAIN BITMAP  "cobrinha.bmp"
+IDB_MAIN1 BITMAP "cobrinha.bmp"
+IDB_FIG BITMAP   "fundo.bmp"
