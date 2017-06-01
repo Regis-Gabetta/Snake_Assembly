@@ -1,4 +1,4 @@
-﻿.386
+.386
 .model flat,stdcall
 option casemap:none
 include C:\masm32\include\windows.inc
@@ -12,25 +12,30 @@ includelib C:\masm32\lib\kernel32.lib
 includelib C:\masm32\lib\gdi32.lib
 includelib C:\masm32\include\comctl32.lib
 
+Paint_Proc proto :DWORD,:DWORD
+ThreadProc proto :DWORD,:DWORD,:DWORD
+
 
 WinMain proto :DWORD,:DWORD,:DWORD,:DWORD
-Paint_Proc proto :DWORD,:DWORD
-Tempo_Proc proto :DWORD,:DWORD,:DWORD
-clearScreen proto :DWORD,:DWORD
-IDB_MAIN   equ 1
+
+
+IDM_CREATE_THREAD equ 1
 IDB_MAIN1  equ 2
 IDB_FIG    equ 3
 IDB_APPLE  equ 4
+IDB_MAIN   equ 5
+WM_FINISH equ WM_USER+100h
+
 
 
 .data
 ClassName db "SimpleWin32ASMBitmapClass",0
 AppName  db "Win32ASM Simple Bitmap Example",0
 
-hBitmap  dd 0
 hBitmap2 dd 0
 hBitmap3 dd 0
 hBitmap4 dd 0
+TimerID  dd 0
 
 .data?
 hInstance HINSTANCE ?
@@ -40,6 +45,11 @@ rectFundo RECT <>
 hBitmap dd ?
 rect RECT <>
 estado db ?
+hwndProgress dd ? 
+hwndStatus dd ? 
+CurrentStep dd ? 
+ThreadID DWORD ?
+
 
 
 .code
@@ -102,46 +112,57 @@ WndProc proc hWnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM
       invoke LoadBitmap,hInstance,IDB_MAIN
       mov hBitmap3,eax
 
-      invoke LoadBitmap,hInstance,IDB_APPLE
-      mov hBitmap4,eax
-
-    ;  invoke Tempo_Proc,hWnd,hdc,1
-
       mov   rect.left,2
       mov   rect.top,2
-      mov   rect.right,500
-      mov   rect.bottom,500
+      mov   rect.right,50
+      mov   rect.bottom,50
       mov   estado,0
 ; chamar Bitblt ao criar para criar pano de fundo
       invoke GetClientRect,hWnd,addr rectFundo
 
+   .elseif uMsg==WM_COMMAND
+      mov eax,wParam
+                        MOV   rect.left, 2  
+                        ADD   rect.top,10
+                        ADD   rect.bottom,10
+
+            mov  eax,OFFSET ThreadProc
+            invoke CreateThread,NULL,NULL,ThreadProc,eax,0,ADDR ThreadID
+            invoke CloseHandle,eax
+
+   .elseif uMsg==WM_FINISH
+
    .elseif uMsg==WM_CHAR
       cmp   wParam,'d'
       jne   nao
-      add   rect.left, 6
-      add   rect.right, 6
-      ;invoke Tempo_Proc,hWnd,hdc,1
+      add   rect.left, 2
+      add   rect.right, 2
+thread:
+      cmp wParam,'h'
+      jne nao
+      mov ax,IDM_CREATE_THREAD
  
 nao:
       cmp   wParam,'a'
       jne   nao1
-      sub   rect.left, 6
-      sub   rect.right, 6
+      sub   rect.left, 2
+      sub   rect.right, 2
 
 nao1:
-      cmp   wParam,'s'
+      cmp   wParam,'w'
       jne   nao2
-      add   rect.top, 6
+      sub   rect.top, 2
+      sub   rect.bottom, 2
 
 nao2:
-      cmp   wParam,'w'
-      jne   nao3      
-      sub   rect.top, 6
-      sub   rect.top, 6
+      cmp   wParam,'s'
+      jne   nao3
+      add   rect.top, 2
+      add   rect.bottom, 2
 
 nao3:
       not   estado
-      invoke InvalidateRect, hWnd, NULL, FALSE
+      invoke InvalidateRect, hWnd, NULL, FALSE             
 
    .elseif uMsg==WM_PAINT
       invoke BeginPaint,hWnd,addr ps
@@ -163,24 +184,11 @@ nao3:
       jne   fig2
 fig1:
       invoke SelectObject,hMemDC,hBitmap3
-      invoke BitBlt,hdc,rect.left,rect.top,rect.right,rect.bottom,hMemDC,0,0,SRCCOPY
-     
       invoke Paint_Proc,hWnd,hdc
-
-     ;invoke Tempo_Proc,hWnd,hdc,1
- ;    invoke DeleteDC,hMemDC
+ ;     invoke DeleteDC,hMemDC
       jmp    fim  
 fig2:    
-      invoke SelectObject,hMemDC,hBitmap4
-      invoke BitBlt,hdc,100,1000,130,1030,hMemDC,0,0,SRCCOPY
-
       invoke SelectObject,hMemDC,hBitmap2
-      invoke BitBlt,hdc,rect.left,rect.top,rect.right,rect.bottom,hMemDC,0,0,SRCCOPY
-      mov ecx,rect.left
-      add ecx,20
-      mov edx,rect.top
-      add edx,20
-      invoke Rectangle,hdc,rect.left,rect.top,ecx,edx
       invoke Paint_Proc,hWnd,hdc
 
   ;    invoke DeleteDC,hMemDC
@@ -192,6 +200,9 @@ fim:
 	.elseif uMsg==WM_DESTROY
       invoke DeleteObject,hBitmap
 		invoke PostQuitMessage,NULL
+      .if TimerID!=0 
+            invoke KillTimer,hWnd,TimerID 
+      .endif
 	.ELSE
 		invoke DefWindowProc,hWnd,uMsg,wParam,lParam		
 		ret
@@ -199,6 +210,7 @@ fim:
 	xor eax,eax
 	ret
 WndProc endp
+
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD
 
@@ -265,122 +277,18 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
 
 Paint_Proc endp
 
+ThreadProc PROC USES ecx Param:DWORD, hwnd:HWND, hDC:DWORD
+        mov  ecx,300000000
+Loop1:
+        add rect.left,2
+        add rect.left,2
+        invoke Rectangle,hDC,10,10,300,300
+        invoke SendMessage,hwnd,WM_FINISH,NULL,NULL
 
-
-Tempo_Proc proc hWin:DWORD, hDC:DWORD, movit:DWORD 
-
-
-    LOCAL hOld :DWORD
-    LOCAL memDC:DWORD
-    LOCAL var1 :DWORD
-    LOCAL var2 :DWORD
-    LOCAL var3 :DWORD
-
-    invoke CreateCompatibleDC,hDC
-    mov memDC, eax
-
-    .if movit == 0
-  ; -------------------
-  ; for normal repaint
-  ; -------------------
-      invoke BitBlt,hDC,10,10,265,550,memDC,0,0,SRCCOPY
-
-    .else
-  ; --------------------------
-  ; when you press the button
-  ; --------------------------
-    ; ********************************************************
-
-    mov var3, 0         ;botão foi apertado, a animação vai começar,
-         ;a imagem vai para a direita
-
-    .while var3 < 1     ;<< set the number of times image is looped
-
-      mov var1, 0       ;vai do zero ao 310, que é o tamanho necessário       
-      .while var1 < 305 ;para a animação ocorrer de forma certa
-      ; ------------------------------------------------
-      ; Read across the double bitmap 1 pixel at a time
-      ; and display a set rectangle size on the screen
-      ; ------------------------------------------------      
-
-      mov ecx,var1
-      add ecx,20
-      invoke Rectangle,hDC,var1,10,ecx,110 ;muda a
-      ;invoke clearScreen,hWin,hDC
-
-
-      ; -----------------------
-      ; Simple delay technique
-      ; -----------------------
-        invoke GetTickCount
-        mov var2, eax
-        add var2, 10    ; nominal milliseconds delay
-
-        .while eax < var2
-          invoke GetTickCount
-        .endw
-
-        inc var1       ;para a imagem avançar
-      .endw
-
-    inc var3
-    .endw
-
-    ; ********************************************************
-
-    .endif
-
-    invoke SelectObject,hDC,hOld
-    invoke DeleteDC,memDC
-
-    ret
-
-Tempo_Proc endp
-
-
-
-clearScreen proc hWin:DWORD, hDC:DWORD
-
-    LOCAL hPen      :DWORD
-    LOCAL hPenOld   :DWORD
-    LOCAL hBrush    :DWORD
-    LOCAL hBrushOld :DWORD
-
-    LOCAL lb        :LOGBRUSH
-
-    invoke CreatePen,0,1,00FFFFFFh
-    mov hPen, eax
-
-    mov lb.lbStyle, BS_SOLID
-    mov lb.lbColor, 00FFFFFFh       ;white
-    mov lb.lbHatch, NULL
-
-    invoke CreateBrushIndirect,ADDR lb
-    mov hBrush, eax
-
-    invoke SelectObject,hDC,hPen
-    mov hPenOld, eax
-
-    invoke SelectObject,hDC,hBrush
-    mov hBrushOld, eax
-
-  ; ------------------------------------------------
-  ; The 4 GDI functions use the pen colour set above
-  ; and fill the area with the current brush.
-  ; ------------------------------------------------
-
-    invoke Rectangle,hDC,0,0,10000,10000
-  ; ------------------------------------------------
-
-    invoke SelectObject,hDC,hBrushOld
-    invoke DeleteObject,hBrush
-
-    invoke SelectObject,hDC,hPenOld
-    invoke DeleteObject,hPen
-
-    ret
-
-clearScreen endp
+Get_out:
+        invoke SendMessage,hwnd,WM_FINISH,NULL,NULL
+        ret
+ThreadProc ENDP
 
 
 end start

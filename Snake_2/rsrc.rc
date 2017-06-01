@@ -1,0 +1,11 @@
+#define IDM_CREATE_THREAD 1
+#define IDB_MAIN1 2
+#define IDB_FIG   3
+#define IBD_APPLE 4
+#define IDB_MAIN  5
+
+
+IDB_MAIN BITMAP  "IMG1.bmp"
+IDB_MAIN1 BITMAP "IMG2.bmp"
+IDB_FIG BITMAP   "fundo.bmp"
+IDB_APPLE BITMAP "maca.bmp"

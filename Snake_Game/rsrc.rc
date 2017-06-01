@@ -5,3 +5,4 @@
 IDB_MAIN BITMAP  "cobrinha.bmp"
 IDB_MAIN1 BITMAP "cobrinha.bmp"
 IDB_FIG BITMAP   "fundo.bmp"
+IDB_APPLE BITMAP   "maca.bmp"
