@@ -131,6 +131,8 @@ WndProc proc hWnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM
             invoke CloseHandle,eax
 
    .elseif uMsg==WM_FINISH
+       add rect.left, 2
+       add rect.right,2
 
    .elseif uMsg==WM_CHAR
       cmp   wParam,'d'
