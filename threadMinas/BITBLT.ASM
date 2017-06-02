@@ -143,20 +143,26 @@ WndProc proc hWin   :DWORD,
     LOCAL buffer2[128]:BYTE  ; for text manipulation etc..
 
     .if uMsg == WM_COMMAND
-    ;======== menu commands ========
-		mov eax,wParam
-		.IF ax==IDM_TEST
-			invoke MessageBox,NULL,ADDR Test_string,OFFSET AppName,MB_OK
-		.ELSE
-			invoke DestroyWindow,hWnd
-		.ENDIF    
+
     .elseif uMsg == WM_CREATE
 
     mov ecx,tam_snake
     mov dif_snake, ecx
-	  mov posicao.x,200
-		mov posicao.y,0
-    mov lRect.bottom,10
+	  mov cabeca.left,200
+    mov cabeca.right,220
+		mov cabeca.top,100
+    mov cabeca.bottom,120
+    mov baixo,1
+
+    mov corpo1.left,200
+    mov corpo1.right,220
+    mov corpo1.top,80
+    mov corpo1.bottom,100
+
+    mov corpo2.left,200
+    mov corpo2.right,220
+    mov corpo2.top,60
+    mov corpo2.bottom,80
 
     mov rectCom.left, 200
     mov rectCom.right,210
@@ -190,44 +196,115 @@ WndProc proc hWin   :DWORD,
     
     .elseif uMsg == WM_CHAR
 
-    cmp wParam,'h'
-    jne nao
-    not achou
+    
    nao:
+      .if wParam != 97 && wParam != 100 && wParam != 119 && wParam !=115
+        jmp nao4
+      .endif
+
+      .if direita != 0
+
+        .if wParam == 'a'
+        jmp passo2
+        .elseif wParam == 'd'
+        jmp passo2
+        .endif
+
+        mov posAnt,2
+        mov ecx, cabeca.right
+        mov ptInf,ecx
+
+
+      .elseif esquerda !=0
+        .if wParam == 'a'
+        jmp passo2
+        .elseif wParam == 'd'
+        jmp passo2
+        .endif
+
+        mov posAnt,3
+        mov ecx,cabeca.left
+        mov ptInf,ecx
+
+
+      .elseif cima != 0
+
+        .if wParam == 'w'
+        jmp passo2
+        .elseif wParam == 's'
+        jmp passo2
+        .endif
+
+        mov posAnt,1
+        mov ecx,cabeca.top
+        mov ptInf,ecx
+      .elseif baixo != 0
+
+        .if wParam == 'w'
+        jmp passo2
+        .elseif wParam == 's'
+        jmp passo2
+        .endif
+
+        mov posAnt, 0
+        mov ecx,cabeca.bottom
+        mov ptInf,ecx
+      .endif
+
+  passo2:
     	cmp wParam,'a'
-    	jne nao1
-	    mov lRect.right,10
-	    mov lRect.left,0
-	    mov lRect.top,0
-	    mov lRect.bottom,0
+      jne nao1
+      cmp direita,1
+      je nao4
+      cmp esquerda,1
+      je nao4
+      mov esquerda,1
+      mov direita,0
+      mov cima,0
+      mov baixo,0
 	    jmp nao4
 	 nao1:
     cmp wParam,'d'
     jne nao2
-    mov lRect.left,10
-    mov lRect.top,0
-    mov lRect.bottom,0
-    mov lRect.right,0
+    cmp direita,1
+    je nao4
+    cmp esquerda,1
+    je nao4
+    mov esquerda,0
+    mov direita,1
+    mov cima,0
+    mov baixo,0
+
     jmp nao4
 	 nao2:
     cmp wParam,'w'
     jne nao3
-    mov lRect.left,0
-    mov lRect.top,10
-    mov lRect.bottom,0
-    mov lRect.right,0
+    cmp cima,1
+    je nao4
+    cmp baixo,1
+    je nao4
+    mov esquerda,0
+    mov direita,0
+    mov cima,1
+    mov baixo,0
+
     jmp nao4
 
    nao3:
     cmp wParam,'s'
-    jne nao4
-    mov lRect.left,0
-    mov lRect.top,0
-    mov lRect.bottom,10
-    mov lRect.right,0
+    jne nao4    
+    cmp cima,1
+    je nao4
+    cmp baixo,1
+    je nao4
+    mov esquerda,0
+    mov direita,0
+    mov cima,0
+    mov baixo,1
+
 
    nao4:
-    invoke InvalidateRect, hWnd, addr lRect,TRUE 
+
 
 
    .elseif uMsg == WM_RBUTTONDOWN
@@ -236,71 +313,288 @@ WndProc proc hWin   :DWORD,
    	    
    .elseif uMsg==WM_FINISH
 
-      mov ecx,posicao.y
+      mov ecx,cabeca.top
          .if rectCom.bottom >= ecx
             add ecx,20
             .if rectCom.top <= ecx
-                mov ecx,posicao.x
+                mov ecx,cabeca.left
                 .if rectCom.right >= ecx
                     add ecx,20
                     .if rectCom.left <= ecx
                       cmp achou,0
                       jne aqui
                       add dif_snake,20
-                      aqui:
                       mov achou,1
+                      add quantos,1
+                      aqui:
+                      
                     .endif
                 .endif
             .endif      
          .endif
 
-   	   .if lRect.right ==10
-	       sub posicao.x,1
-       .elseif lRect.left ==10
-         add posicao.x,1
-       .elseif lRect.top ==10
-         sub posicao.y,1
-       .elseif lRect.bottom ==10
-         add posicao.y,1
+   	   .if esquerda != 0
+
+        .if posAnt == 1
+              mov ecx,corpo1.top
+              .if ecx > ptInf
+                dec corpo1.top
+                dec corpo1.bottom
+              .else 
+                dec corpo1.left
+                dec corpo1.right
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx > ptInf
+                dec corpo2.top
+                dec corpo2.bottom
+              .else 
+                dec corpo2.left
+                dec corpo2.right
+              .endif            
+        .endif
+
+        .if posAnt == 0
+              mov ecx,corpo1.bottom
+              .if ecx < ptInf
+                inc corpo1.top
+                inc corpo1.bottom
+              .else 
+                dec corpo1.left
+                dec corpo1.right
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                inc corpo2.top
+                inc corpo2.bottom
+              .else 
+                dec corpo2.left
+                dec corpo2.right
+              .endif            
+
+        .endif
+
+
+	       sub cabeca.left,1
+         sub cabeca.right,1
+         
+       .elseif direita != 0
+          .if posAnt == 0
+
+              mov ecx,corpo1.bottom
+
+              .if ecx < ptInf
+                inc corpo1.top
+                inc corpo1.bottom
+              .else 
+                inc corpo1.left
+                inc corpo1.right
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                inc corpo2.top
+                inc corpo2.bottom
+              .else 
+                inc corpo2.left
+                inc corpo2.right
+              .endif        
+          
+          .endif
+
+          .if posAnt == 1
+
+              mov ecx,corpo1.top
+              .if ecx > ptInf
+                dec corpo1.top
+                dec corpo1.bottom
+              .else 
+                inc corpo1.left
+                inc corpo1.right
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx > ptInf
+                dec corpo2.top
+                dec corpo2.bottom
+              .else 
+                inc corpo2.left
+                inc corpo2.right
+              .endif           
+
+          .endif
+
+
+         add cabeca.left,1
+         add cabeca.right,1
+
+       .elseif cima != 0
+
+          .if posAnt == 2
+              mov ecx, corpo1.right
+
+              .if ecx < ptInf
+                inc corpo1.left
+                inc corpo1.right
+              .else 
+                dec corpo1.top
+                dec corpo1.bottom
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                inc corpo2.left
+                inc corpo2.right
+              .else 
+                dec corpo2.top
+                dec corpo2.bottom
+              .endif
+
+              
+            .endif
+
+          .if posAnt == 3
+
+              mov ecx, corpo1.left
+
+              .if ecx > ptInf
+                dec corpo1.left
+                dec corpo1.right
+              .else 
+                dec corpo1.top
+                dec corpo1.bottom
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                dec corpo2.left
+                dec corpo2.right
+              .else 
+                dec corpo2.top
+                dec corpo2.bottom
+              .endif
+            
+          .endif
+          sub cabeca.top,1
+          sub cabeca.bottom,1
+
+       .elseif baixo != 0
+
+            .if posAnt == 2
+              mov ecx, corpo1.right
+
+              .if ecx < ptInf
+                inc corpo1.left
+                inc corpo1.right
+              .else 
+                inc corpo1.top
+                inc corpo1.bottom
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                inc corpo2.left
+                inc corpo2.right
+              .else 
+                inc corpo2.top
+                inc corpo2.bottom
+              .endif
+            .endif
+
+
+           .if posAnt == 3
+
+              mov ecx, corpo1.left
+
+              .if ecx > ptInf
+                dec corpo1.left
+                dec corpo1.right
+              .else 
+                inc corpo1.top
+                inc corpo1.bottom
+              .endif
+
+              mov ecx, corpo2.top
+
+              .if ecx < ptInf
+                dec corpo2.left
+                dec corpo2.right
+              .else 
+                inc corpo2.top
+                inc corpo2.bottom
+              .endif
+                
+            .endif
+
+
+         add cabeca.top,1
+         add cabeca.bottom,1
+         .if posAnt == 0
+            inc corpo2.top
+            inc corpo2.bottom
+            inc corpo1.top
+            inc corpo1.bottom
+         .endif
        .endif
+
+
+
+
 
     mov ecx, tam_snake
     .if dif_snake > ecx   
       inc tam_snake
     .endif  
 
-    .if posicao.x > 464
-	     mov posicao.x,230
-	     mov posicao.y,1
-       mov lRect.bottom,10
-       mov lRect.top,0
-       mov lRect.left,0
-       mov lRect.right,0
+    .if cabeca.left > 464
+	     mov cabeca.left,230
+       mov cabeca.right,250
+	     mov cabeca.top,1
+       mov cabeca.bottom,21
+       mov baixo,1
+       mov cima,0
+       mov direita,0
+       mov esquerda,0
 
 	  .endif 
-    .if posicao.x < 2
-       mov posicao.x,230
-       mov posicao.y,1
-       mov lRect.bottom,10
-       mov lRect.top,0
-       mov lRect.left,0
-       mov lRect.right,0
+    .if cabeca.left < 2
+       mov cabeca.left,230
+       mov cabeca.right,250
+       mov cabeca.top,1
+       mov cabeca.bottom,21
+       mov baixo,1
+       mov cima,0
+       mov direita,0
+       mov esquerda,0
     .endif 
-    .if posicao.y < 1
-       mov posicao.x,230
-       mov posicao.y,1
-       mov lRect.bottom,10
-       mov lRect.top,0
-       mov lRect.left,0
-       mov lRect.right,0
+    .if cabeca.top < 1
+       mov cabeca.left,230
+       mov cabeca.right,250
+       mov cabeca.top,1
+       mov cabeca.bottom,21
+       mov baixo,1
+       mov cima,0
+       mov direita,0
+       mov esquerda,0
     .endif 
-    .if posicao.y > 272
-       mov posicao.x,230
-       mov posicao.y,1
-       mov lRect.bottom,10
-       mov lRect.top,0
-       mov lRect.left,0
-       mov lRect.right,0
+    .if cabeca.top> 272
+       mov cabeca.left,230
+       mov cabeca.right,250
+       mov cabeca.top,1
+       mov cabeca.bottom,21
+       mov baixo,1
+       mov cima,0
+       mov direita,0
+       mov esquerda,0
     .endif 
 
 	  invoke InvalidateRect,hWnd,NULL,TRUE	     
@@ -359,10 +653,10 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
 
     LOCAL lb        :LOGBRUSH
 
-    invoke Rectangle,hDC,0,0,484,292
+    
 
     continua:
-    invoke CreatePen,0,1,00000000h  
+    invoke CreatePen,0,1,00FF0000h  
     mov hPen, eax
 
     mov lb.lbStyle, BS_SOLID
@@ -383,11 +677,13 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
   ; and fill the area with the current brush.
   ; ------------------------------------------------
 
-    mov ecx,posicao.x
-    add ecx,tam_snake
-    mov edx,posicao.y
-    add edx,20
-    invoke Rectangle,hDC,posicao.x,posicao.y,ecx,edx
+    mov ecx,cabeca.left
+    mov edx,cabeca.top
+    invoke Rectangle,hDC,cabeca.left,cabeca.top,cabeca.right,cabeca.bottom
+    invoke Rectangle,hDC,corpo1.left,corpo1.top,corpo1.right,corpo1.bottom
+    .if quantos>=1
+    invoke Rectangle,hDC,corpo2.left,corpo2.top,corpo2.right,corpo2.bottom
+    .endif
 
     cmp achou,0
     jne pulou

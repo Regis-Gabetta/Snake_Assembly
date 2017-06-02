@@ -77,17 +77,27 @@
         hIcon         dd 0
         hBmp          dd 0
         hBmp2         dd 0
-        memDC2        DWORD 0 
+        memDC2        DWORD 0
         x		 dd 0
-        trasp		dd  0
-        achou		dd  0
+        trasp		 dd  0
+        quantos  dd  0
+        achou		 dd  0
+        direita  dd  0
+        esquerda dd  0
+        cima     dd  0
+        baixo    dd  0
+        cont     dd  0
+        ptInf    dd  0
+        posAnt   dd  0  ;0=baixo,1=cima,2=direita,3=esquerda
         tam_snake dd 20
         dif_snake dd 0
-        primeira dd 0
+        primeira  dd 0
         lRect           RECT <>
         rectCom         RECT <>
         hitpoint 	POINT <>
-        posicao         POINT <>
+        cabeca    RECT <>
+        corpo1    RECT<>
+        corpo2    RECT<>
         ThreadID dd 0
 	ExitCode dd 0
 	hThread dd 0
