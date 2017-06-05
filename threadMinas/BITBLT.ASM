@@ -146,13 +146,11 @@ WndProc proc hWin   :DWORD,
 
     .elseif uMsg == WM_CREATE
 
-    mov ecx,tam_snake
-    mov dif_snake, ecx
 	  mov cabeca.left,200
     mov cabeca.right,220
 		mov cabeca.top,100
     mov cabeca.bottom,120
-    mov baixo,1
+    mov posAtual,0
 
     mov corpo1.left,200
     mov corpo1.right,220
@@ -202,7 +200,7 @@ WndProc proc hWin   :DWORD,
         jmp nao4
       .endif
 
-      .if direita != 0
+      .if posAtual == 2
 
         .if wParam == 'a'
         jmp passo2
@@ -215,7 +213,7 @@ WndProc proc hWin   :DWORD,
         mov ptInf,ecx
 
 
-      .elseif esquerda !=0
+      .elseif posAtual == 3
         .if wParam == 'a'
         jmp passo2
         .elseif wParam == 'd'
@@ -227,7 +225,7 @@ WndProc proc hWin   :DWORD,
         mov ptInf,ecx
 
 
-      .elseif cima != 0
+      .elseif posAtual == 1
 
         .if wParam == 'w'
         jmp passo2
@@ -238,7 +236,7 @@ WndProc proc hWin   :DWORD,
         mov posAnt,1
         mov ecx,cabeca.top
         mov ptInf,ecx
-      .elseif baixo != 0
+      .elseif posAtual == 0
 
         .if wParam == 'w'
         jmp passo2
@@ -254,53 +252,39 @@ WndProc proc hWin   :DWORD,
   passo2:
     	cmp wParam,'a'
       jne nao1
-      cmp direita,1
+      cmp posAtual,2
       je nao4
-      cmp esquerda,1
+      cmp posAtual,3
       je nao4
-      mov esquerda,1
-      mov direita,0
-      mov cima,0
-      mov baixo,0
+      mov posAtual,3
 	    jmp nao4
 	 nao1:
     cmp wParam,'d'
     jne nao2
-    cmp direita,1
+    cmp posAtual,2
     je nao4
-    cmp esquerda,1
+    cmp posAtual,3
     je nao4
-    mov esquerda,0
-    mov direita,1
-    mov cima,0
-    mov baixo,0
-
+    mov posAtual,2
     jmp nao4
 	 nao2:
     cmp wParam,'w'
     jne nao3
-    cmp cima,1
+    cmp posAtual,1
     je nao4
-    cmp baixo,1
+    cmp posAtual,0
     je nao4
-    mov esquerda,0
-    mov direita,0
-    mov cima,1
-    mov baixo,0
-
+    mov posAtual,1
     jmp nao4
 
    nao3:
     cmp wParam,'s'
     jne nao4    
-    cmp cima,1
+    cmp posAtual,1
     je nao4
-    cmp baixo,1
+    cmp posAtual,0
     je nao4
-    mov esquerda,0
-    mov direita,0
-    mov cima,0
-    mov baixo,1
+    mov posAtual,0
 
 
    nao4:
@@ -323,9 +307,8 @@ WndProc proc hWin   :DWORD,
                     .if rectCom.left <= ecx
                       cmp achou,0
                       jne aqui
-                      add dif_snake,20
                       mov achou,1
-                      add quantos,1
+                      inc quantos
                       aqui:
                       
                     .endif
@@ -333,7 +316,7 @@ WndProc proc hWin   :DWORD,
             .endif      
          .endif
 
-   	   .if esquerda != 0
+   	   .if posAtual == 3
 
         .if posAnt == 1
               mov ecx,corpo1.top
@@ -366,7 +349,7 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.right
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.bottom
 
               .if ecx < ptInf
                 inc corpo2.top
@@ -382,7 +365,7 @@ WndProc proc hWin   :DWORD,
 	       sub cabeca.left,1
          sub cabeca.right,1
          
-       .elseif direita != 0
+       .elseif posAtual == 2
           .if posAnt == 0
 
               mov ecx,corpo1.bottom
@@ -395,7 +378,7 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.right
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.bottom
 
               .if ecx < ptInf
                 inc corpo2.top
@@ -434,7 +417,7 @@ WndProc proc hWin   :DWORD,
          add cabeca.left,1
          add cabeca.right,1
 
-       .elseif cima != 0
+       .elseif posAtual == 1
 
           .if posAnt == 2
               mov ecx, corpo1.right
@@ -447,7 +430,7 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.bottom
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.right
 
               .if ecx < ptInf
                 inc corpo2.left
@@ -472,9 +455,9 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.bottom
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.left
 
-              .if ecx < ptInf
+              .if ecx > ptInf
                 dec corpo2.left
                 dec corpo2.right
               .else 
@@ -486,7 +469,7 @@ WndProc proc hWin   :DWORD,
           sub cabeca.top,1
           sub cabeca.bottom,1
 
-       .elseif baixo != 0
+       .elseif posAtual == 0
 
             .if posAnt == 2
               mov ecx, corpo1.right
@@ -499,7 +482,7 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.bottom
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.right
 
               .if ecx < ptInf
                 inc corpo2.left
@@ -523,9 +506,9 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.bottom
               .endif
 
-              mov ecx, corpo2.top
+              mov ecx, corpo2.left
 
-              .if ecx < ptInf
+              .if ecx > ptInf
                 dec corpo2.left
                 dec corpo2.right
               .else 
@@ -546,24 +529,12 @@ WndProc proc hWin   :DWORD,
          .endif
        .endif
 
-
-
-
-
-    mov ecx, tam_snake
-    .if dif_snake > ecx   
-      inc tam_snake
-    .endif  
-
     .if cabeca.left > 464
 	     mov cabeca.left,230
        mov cabeca.right,250
 	     mov cabeca.top,1
        mov cabeca.bottom,21
-       mov baixo,1
-       mov cima,0
-       mov direita,0
-       mov esquerda,0
+       mov posAtual,0
 
 	  .endif 
     .if cabeca.left < 2
@@ -571,30 +542,23 @@ WndProc proc hWin   :DWORD,
        mov cabeca.right,250
        mov cabeca.top,1
        mov cabeca.bottom,21
-       mov baixo,1
-       mov cima,0
-       mov direita,0
-       mov esquerda,0
+       mov posAtual,0
+
     .endif 
     .if cabeca.top < 1
        mov cabeca.left,230
        mov cabeca.right,250
        mov cabeca.top,1
        mov cabeca.bottom,21
-       mov baixo,1
-       mov cima,0
-       mov direita,0
-       mov esquerda,0
+       mov posAtual,0
+
     .endif 
     .if cabeca.top> 272
        mov cabeca.left,230
        mov cabeca.right,250
        mov cabeca.top,1
        mov cabeca.bottom,21
-       mov baixo,1
-       mov cima,0
-       mov direita,0
-       mov esquerda,0
+       mov posAtual,0
     .endif 
 
 	  invoke InvalidateRect,hWnd,NULL,TRUE	     
@@ -706,6 +670,7 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
       mov lb.lbColor, 000000h
 
       invoke Rectangle,hDC,rectCom.left,rectCom.top,rectCom.right,rectCom.bottom
+
   
     pulou:
 
