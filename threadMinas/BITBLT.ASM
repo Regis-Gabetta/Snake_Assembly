@@ -150,17 +150,12 @@ WndProc proc hWin   :DWORD,
     mov cabeca.right,220
 		mov cabeca.top,100
     mov cabeca.bottom,120
-    mov posAtual,0
+    mov [dirAtual],0
 
     mov corpo1.left,200
     mov corpo1.right,220
-    mov corpo1.top,80
-    mov corpo1.bottom,100
-
-    mov corpo2.left,200
-    mov corpo2.right,220
-    mov corpo2.top,60
-    mov corpo2.bottom,80
+    mov corpo1.top,81
+    mov corpo1.bottom,101
 
     mov rectCom.left, 200
     mov rectCom.right,210
@@ -172,7 +167,7 @@ WndProc proc hWin   :DWORD,
 		
 		mov    eax,OFFSET ThreadProc
 		invoke CreateThread,NULL,NULL,eax,\
-		                    NULL,NORMAL_PRIORITY_CLASS,\
+		                    NULL,HIGH_PRIORITY_CLASS,\
 		                     ADDR ThreadID
 		mov    hThread,eax
 
@@ -200,7 +195,7 @@ WndProc proc hWin   :DWORD,
         jmp nao4
       .endif
 
-      .if posAtual == 2
+      .if [dirAtual] == 2
 
         .if wParam == 'a'
         jmp passo2
@@ -213,7 +208,7 @@ WndProc proc hWin   :DWORD,
         mov ptInf,ecx
 
 
-      .elseif posAtual == 3
+      .elseif [dirAtual] == 3
         .if wParam == 'a'
         jmp passo2
         .elseif wParam == 'd'
@@ -225,7 +220,7 @@ WndProc proc hWin   :DWORD,
         mov ptInf,ecx
 
 
-      .elseif posAtual == 1
+      .elseif [dirAtual] == 1
 
         .if wParam == 'w'
         jmp passo2
@@ -236,7 +231,7 @@ WndProc proc hWin   :DWORD,
         mov posAnt,1
         mov ecx,cabeca.top
         mov ptInf,ecx
-      .elseif posAtual == 0
+      .elseif [dirAtual] == 0
 
         .if wParam == 'w'
         jmp passo2
@@ -252,39 +247,39 @@ WndProc proc hWin   :DWORD,
   passo2:
     	cmp wParam,'a'
       jne nao1
-      cmp posAtual,2
+      cmp [dirAtual],2
       je nao4
-      cmp posAtual,3
+      cmp [dirAtual],3
       je nao4
-      mov posAtual,3
+      mov [dirAtual],3
 	    jmp nao4
 	 nao1:
     cmp wParam,'d'
     jne nao2
-    cmp posAtual,2
+    cmp [dirAtual],2
     je nao4
-    cmp posAtual,3
+    cmp [dirAtual],3
     je nao4
-    mov posAtual,2
+    mov [dirAtual],2
     jmp nao4
 	 nao2:
     cmp wParam,'w'
     jne nao3
-    cmp posAtual,1
+    cmp [dirAtual],1
     je nao4
-    cmp posAtual,0
+    cmp [dirAtual],0
     je nao4
-    mov posAtual,1
+    mov [dirAtual],1
     jmp nao4
 
    nao3:
     cmp wParam,'s'
     jne nao4    
-    cmp posAtual,1
+    cmp [dirAtual],1
     je nao4
-    cmp posAtual,0
+    cmp [dirAtual],0
     je nao4
-    mov posAtual,0
+    mov [dirAtual],0
 
 
    nao4:
@@ -295,6 +290,9 @@ WndProc proc hWin   :DWORD,
    	  ;  invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
    	 ; invoke SetEvent,hEventStart
    	    
+   .elseif uMsg == WM_INITDIALOG
+
+
    .elseif uMsg==WM_FINISH
 
       mov ecx,cabeca.top
@@ -308,7 +306,29 @@ WndProc proc hWin   :DWORD,
                       cmp achou,0
                       jne aqui
                       mov achou,1
+
+
+                      .if unid == 9
+                        mov unid,0
+                          .if dez == 9
+                            mov dez,0
+                            inc cent
+                          .else
+                            inc dez
+                          .endif
+                      .else
+                        inc unid
+                      .endif
+
+
+                      .if cont > 2
+                        inc contador
+                        .if contador == 3 || contador == 6 || contador == 9 || contador == 12 || contador == 15 || contador == 18 || contador == 21 || contador == 24
+                          sub cont,1
+                        .endif
+                      .endif
                       inc quantos
+                      inc somatoria
                       aqui:
                       
                     .endif
@@ -316,7 +336,8 @@ WndProc proc hWin   :DWORD,
             .endif      
          .endif
 
-   	   .if posAtual == 3
+
+   	   .if [dirAtual] == 3
 
         .if posAnt == 1
               mov ecx,corpo1.top
@@ -328,15 +349,7 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.right
               .endif
 
-              mov ecx, corpo2.top
 
-              .if ecx > ptInf
-                dec corpo2.top
-                dec corpo2.bottom
-              .else 
-                dec corpo2.left
-                dec corpo2.right
-              .endif            
         .endif
 
         .if posAnt == 0
@@ -349,15 +362,6 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.right
               .endif
 
-              mov ecx, corpo2.bottom
-
-              .if ecx < ptInf
-                inc corpo2.top
-                inc corpo2.bottom
-              .else 
-                dec corpo2.left
-                dec corpo2.right
-              .endif            
 
         .endif
 
@@ -365,7 +369,7 @@ WndProc proc hWin   :DWORD,
 	       sub cabeca.left,1
          sub cabeca.right,1
          
-       .elseif posAtual == 2
+       .elseif [dirAtual] == 2
           .if posAnt == 0
 
               mov ecx,corpo1.bottom
@@ -378,16 +382,7 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.right
               .endif
 
-              mov ecx, corpo2.bottom
 
-              .if ecx < ptInf
-                inc corpo2.top
-                inc corpo2.bottom
-              .else 
-                inc corpo2.left
-                inc corpo2.right
-              .endif        
-          
           .endif
 
           .if posAnt == 1
@@ -401,23 +396,13 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.right
               .endif
 
-              mov ecx, corpo2.top
-
-              .if ecx > ptInf
-                dec corpo2.top
-                dec corpo2.bottom
-              .else 
-                inc corpo2.left
-                inc corpo2.right
-              .endif           
-
           .endif
 
 
          add cabeca.left,1
          add cabeca.right,1
 
-       .elseif posAtual == 1
+       .elseif [dirAtual] == 1
 
           .if posAnt == 2
               mov ecx, corpo1.right
@@ -428,16 +413,6 @@ WndProc proc hWin   :DWORD,
               .else 
                 dec corpo1.top
                 dec corpo1.bottom
-              .endif
-
-              mov ecx, corpo2.right
-
-              .if ecx < ptInf
-                inc corpo2.left
-                inc corpo2.right
-              .else 
-                dec corpo2.top
-                dec corpo2.bottom
               .endif
 
               
@@ -454,22 +429,12 @@ WndProc proc hWin   :DWORD,
                 dec corpo1.top
                 dec corpo1.bottom
               .endif
-
-              mov ecx, corpo2.left
-
-              .if ecx > ptInf
-                dec corpo2.left
-                dec corpo2.right
-              .else 
-                dec corpo2.top
-                dec corpo2.bottom
-              .endif
             
           .endif
           sub cabeca.top,1
           sub cabeca.bottom,1
 
-       .elseif posAtual == 0
+       .elseif [dirAtual] == 0
 
             .if posAnt == 2
               mov ecx, corpo1.right
@@ -481,16 +446,8 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.top
                 inc corpo1.bottom
               .endif
+            
 
-              mov ecx, corpo2.right
-
-              .if ecx < ptInf
-                inc corpo2.left
-                inc corpo2.right
-              .else 
-                inc corpo2.top
-                inc corpo2.bottom
-              .endif
             .endif
 
 
@@ -506,15 +463,7 @@ WndProc proc hWin   :DWORD,
                 inc corpo1.bottom
               .endif
 
-              mov ecx, corpo2.left
 
-              .if ecx > ptInf
-                dec corpo2.left
-                dec corpo2.right
-              .else 
-                inc corpo2.top
-                inc corpo2.bottom
-              .endif
                 
             .endif
 
@@ -522,44 +471,48 @@ WndProc proc hWin   :DWORD,
          add cabeca.top,1
          add cabeca.bottom,1
          .if posAnt == 0
-            inc corpo2.top
-            inc corpo2.bottom
             inc corpo1.top
             inc corpo1.bottom
          .endif
        .endif
 
-    .if cabeca.left > 464
-	     mov cabeca.left,230
-       mov cabeca.right,250
-	     mov cabeca.top,1
-       mov cabeca.bottom,21
-       mov posAtual,0
+    .if cabeca.left > 464 || cabeca.left < 2 || cabeca.top < 1 || cabeca.top > 272
+    
+	      mov cabeca.left,200
+        mov cabeca.right,220
+        mov cabeca.top,100
+        mov cabeca.bottom,120
+
+        mov [dirAtual],0
+
+        mov posAnt,0
+
+        mov quantos,0
+
+        mov contador,0
+        mov cont,10
+
+        mov unid,0
+        mov dez,0
+        mov cent,0
+
+        mov corpo1.left,200
+        mov corpo1.right,220
+        mov corpo1.top,81
+        mov corpo1.bottom,101
+
+      	mov rectCom.left, 200
+      	mov rectCom.right,210
+      	mov rectCom.top, 200
+     		mov rectCom.bottom,210
+ 
+       ; mov rectCom.left, 200
+       ; mov rectCom.right,210
+       ; mov rectCom.top, 200
+       ; mov rectCom.bottom,210
 
 	  .endif 
-    .if cabeca.left < 2
-       mov cabeca.left,230
-       mov cabeca.right,250
-       mov cabeca.top,1
-       mov cabeca.bottom,21
-       mov posAtual,0
-
-    .endif 
-    .if cabeca.top < 1
-       mov cabeca.left,230
-       mov cabeca.right,250
-       mov cabeca.top,1
-       mov cabeca.bottom,21
-       mov posAtual,0
-
-    .endif 
-    .if cabeca.top> 272
-       mov cabeca.left,230
-       mov cabeca.right,250
-       mov cabeca.top,1
-       mov cabeca.bottom,21
-       mov posAtual,0
-    .endif 
+    
 
 	  invoke InvalidateRect,hWnd,NULL,TRUE	     
   
@@ -592,7 +545,7 @@ TopXY endp
 
 ThreadProc PROC USES ecx Param:DWORD
 
-  invoke WaitForSingleObject,hEventStart,10 ;INFINITE
+  invoke WaitForSingleObject,hEventStart,cont ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	           invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
@@ -614,17 +567,19 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
     LOCAL hPenOld   :DWORD
     LOCAL hBrush    :DWORD
     LOCAL hBrushOld :DWORD
+    LOCAL hfont     :HFONT
+    LOCAL   rcClient : RECT
 
     LOCAL lb        :LOGBRUSH
 
     
 
     continua:
-    invoke CreatePen,0,1,00FF0000h  
+    invoke CreatePen,0,1,00000000h  
     mov hPen, eax
 
     mov lb.lbStyle, BS_SOLID
-    mov lb.lbColor, 00FF0000h       
+    mov lb.lbColor, 00FFFFFFh       
     mov lb.lbHatch, NULL
 
     invoke CreateBrushIndirect,ADDR lb
@@ -643,20 +598,18 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
 
     mov ecx,cabeca.left
     mov edx,cabeca.top
-    invoke Rectangle,hDC,cabeca.left,cabeca.top,cabeca.right,cabeca.bottom
+    invoke Rectangle,hDC,cabeca.left,cabeca.top,cabeca.right,cabeca.bottom 
     invoke Rectangle,hDC,corpo1.left,corpo1.top,corpo1.right,corpo1.bottom
-    .if quantos>=1
-    invoke Rectangle,hDC,corpo2.left,corpo2.top,corpo2.right,corpo2.bottom
-    .endif
+
 
     cmp achou,0
     jne pulou
 
-      invoke CreatePen,0,1,000000h  
+      invoke CreatePen,0,1,0000000h
       mov hPen, eax
 
       mov lb.lbStyle, BS_SOLID
-      mov lb.lbColor, 999000h       
+      mov lb.lbColor, 0FFFFFFh       
       mov lb.lbHatch, NULL
 
       invoke CreateBrushIndirect,ADDR lb
@@ -667,15 +620,120 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
 
       invoke SelectObject,hDC,hBrush
       mov hBrushOld, eax
-      mov lb.lbColor, 000000h
-
+      mov lb.lbColor, 0FFFFFFh
       invoke Rectangle,hDC,rectCom.left,rectCom.top,rectCom.right,rectCom.bottom
+
+
 
   
     pulou:
+    
+    cmp achou,1
+    jne pulou2
+      .if somatoria == 1
+        mov rectCom.left,100
+        mov rectCom.right,110
+        mov rectCom.top,100
+        mov rectCom.bottom,110
+        mov achou,0
+      .elseif somatoria == 2
+        mov rectCom.left,300
+        mov rectCom.right,310
+        mov rectCom.top,100
+        mov rectCom.bottom,110
+        mov achou,0
+       .elseif somatoria == 3
+        mov rectCom.left,300
+        mov rectCom.right,310
+        mov rectCom.top,200
+        mov rectCom.bottom,210
+        mov achou,0 
+        .elseif somatoria == 4
+        mov rectCom.left,10
+        mov rectCom.right,20
+        mov rectCom.top,10
+        mov rectCom.bottom,20
+        mov achou,0
+        .elseif somatoria == 5
+        mov rectCom.left,410
+        mov rectCom.right,420
+        mov rectCom.top,160
+        mov rectCom.bottom,170
+        mov achou,0 
+        .elseif somatoria == 6
+        mov rectCom.left,240
+        mov rectCom.right,250
+        mov rectCom.top,230
+        mov rectCom.bottom,240
+        mov achou,0 
+        .elseif somatoria == 7
+        mov rectCom.left,30
+        mov rectCom.right,40
+        mov rectCom.top,200
+        mov rectCom.bottom,210
+        mov achou,0 
+        .elseif somatoria == 8
+        mov rectCom.left,10
+        mov rectCom.right,20
+        mov rectCom.top,150
+        mov rectCom.bottom,160
+        mov achou,0 
+        .elseif somatoria == 9
+        mov rectCom.left,200
+        mov rectCom.right,210
+        mov rectCom.top,100
+        mov rectCom.bottom,110
+        mov achou,0 
+        .elseif somatoria == 10
+        mov rectCom.left,430
+        mov rectCom.right,440
+        mov rectCom.top,250
+        mov rectCom.bottom,260
+        mov achou,0  
+        .elseif somatoria == 11
+        mov rectCom.left,200
+        mov rectCom.right,210
+        mov rectCom.top,200
+        mov rectCom.bottom,210
+        mov achou,0
+        mov somatoria,0
+      .endif
+
+    pulou2:
 
     invoke SelectObject,hDC,hBrushOld
     invoke DeleteObject,hBrush
+    ;ESCREVE_TEXTO FontName,hDC,hfont,hello,100,100
+    mov rcClient.left,380
+    mov rcClient.right,440
+    mov rcClient.top,10
+    mov rcClient.bottom,40
+    INVOKE  DrawText,hDC, addr Text,-1, addr rcClient,
+                                  DT_CENTER or DT_NOPREFIX  
+    add rcClient.left,40
+    add rcClient.right,40                                  
+
+    add cent,48
+    INVOKE  DrawText,hDC, addr cent,-1, addr rcClient,
+                                  DT_CENTER or DT_NOPREFIX
+    sub cent,48
+
+    add rcClient.left,10
+    add rcClient.right,10
+
+    add dez,48
+    INVOKE  DrawText,hDC, addr dez,-1, addr rcClient,
+                                  DT_CENTER or DT_NOPREFIX
+    sub dez,48
+
+    add rcClient.left,10
+    add rcClient.right,10                                  
+
+    add unid,48
+    INVOKE  DrawText,hDC, addr unid,-1, addr rcClient,
+                                  DT_CENTER or DT_NOPREFIX
+    sub unid,48
+
 
     invoke SelectObject,hDC,hPenOld
     invoke DeleteObject,hPen
@@ -683,6 +741,11 @@ Draw_Snake proc hWin:DWORD, hDC:DWORD
     ret
 
 Draw_Snake endp
+
+
+
+
+
 
 
 end start

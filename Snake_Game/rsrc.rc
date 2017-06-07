@@ -1,8 +1,28 @@
-#define IDB_MAIN  1
-#define IDB_MAIN1 2
-#define IDB_FIG   3
 
-IDB_MAIN BITMAP  "cobrinha.bmp"
-IDB_MAIN1 BITMAP "cobrinha.bmp"
-IDB_FIG BITMAP   "fundo.bmp"
-IDB_APPLE BITMAP   "maca.bmp"
+#define teste 101
+
+#define IDM_TEST 1
+#define IDM_HELLO 2
+#define IDM_GOODBYE 3
+#define IDM_EXIT 4
+
+
+500 ICON MOVEABLE PURE LOADONCALL DISCARDABLE "MAINICON.ICO"
+501 icon "mainicon.ico"
+
+100 BITMAP MOVEABLE PURE LOADONCALL DISCARDABLE "BITMAP.BMP"
+101 BITMAP MOVEABLE PURE LOADONCALL DISCARDABLE "B2.BMP"
+102 BITMAP  DISCARDABLE  "Sweep.bmp"
+
+
+FirstMenu MENU
+{
+ POPUP "&PopUp"
+        {
+         MENUITEM "&Say Hello",IDM_HELLO
+         MENUITEM "Say &GoodBye", IDM_GOODBYE
+         MENUITEM SEPARATOR
+         MENUITEM "E&xit",IDM_EXIT
+        }
+ MENUITEM "&Test", IDM_TEST
+}
